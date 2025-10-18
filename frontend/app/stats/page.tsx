@@ -1,200 +1,128 @@
-"use client"
+"use client";
 
-import { useSearchParams } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, Download } from "lucide-react"
-import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
+import { getStatsBySlug } from "@/lib/api";
+import { useSearchParams, useRouter } from "next/navigation";
 
-interface ClickData {
-  id: string
-  timestamp: string
-  ip: string
-  referrer: string
-  userAgent: string
+function extractSlug(u: string): string | null {
+  try {
+    const url = new URL(u);
+    const parts = url.pathname.split("/").filter(Boolean);
+    const rIdx = parts.findIndex((p) => p === "r");
+    if (rIdx >= 0 && parts[rIdx + 1]) return parts[rIdx + 1];
+    return parts[parts.length - 1] ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export default function StatsPage() {
-  const searchParams = useSearchParams()
-  const shortUrl = searchParams.get("url") || ""
-  const [clicks, setClicks] = useState<ClickData[]>([])
-  const [qrCodeUrl, setQrCodeUrl] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
+  const search = useSearchParams();
+  const router = useRouter();
+  const qsUrl = search.get("url");
+  const qsId = search.get("id");
+  const [slug, setSlug] = useState<string | null>(null);
+  const [data, setData] = useState<{
+    url: any;
+    clicks_count: number;
+    recent: any[];
+  } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    // TODO: Fetch stats from API
-    // const fetchStats = async () => {
-    //   const response = await fetch(`/api/stats?url=${encodeURIComponent(shortUrl)}`)
-    //   const data = await response.json()
-    //   setClicks(data.clicks)
-    //   setQrCodeUrl(data.qrCode)
-    //   setIsLoading(false)
-    // }
-    // fetchStats()
+    if (qsUrl) {
+      const s = extractSlug(qsUrl);
+      if (s) {
+        setSlug(s);
+        return;
+      }
+      setErr("Không tách được slug từ tham số url.");
+      return;
+    }
+    try {
+      const last = localStorage.getItem("last_shorten_result");
+      if (last) {
+        const obj = JSON.parse(last);
+        if (obj?.short_url) {
+          const s = extractSlug(obj.short_url);
+          if (s) setSlug(s);
+        }
+      }
+    } catch {}
+  }, [qsUrl, qsId]);
 
-    // Mock data for UI demonstration
-    setTimeout(() => {
-      setClicks([
-        {
-          id: "1",
-          timestamp: new Date().toISOString(),
-          ip: "192.168.1.1",
-          referrer: "https://google.com",
-          userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0",
-        },
-        {
-          id: "2",
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-          ip: "192.168.1.2",
-          referrer: "Direct",
-          userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Safari/604.1",
-        },
-        {
-          id: "3",
-          timestamp: new Date(Date.now() - 7200000).toISOString(),
-          ip: "192.168.1.3",
-          referrer: "https://facebook.com",
-          userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15",
-        },
-      ])
-      setQrCodeUrl(`/placeholder.svg?height=200&width=200&query=QR code for ${shortUrl}`)
-      setIsLoading(false)
-    }, 800)
-  }, [shortUrl])
-
-  const formatDate = (isoString: string) => {
-    const date = new Date(isoString)
-    return new Intl.DateTimeFormat("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date)
-  }
-
-  const truncateText = (text: string, maxLength: number) => {
-    if (text.length <= maxLength) return text
-    return text.substring(0, maxLength) + "..."
-  }
+  useEffect(() => {
+    if (!slug) return;
+    setLoading(true);
+    setErr(null);
+    setData(null);
+    getStatsBySlug(slug)
+      .then(setData)
+      .catch((e: any) => setErr(e?.message ?? "Không lấy được thống kê"))
+      .finally(() => setLoading(false));
+  }, [slug]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-12 max-w-5xl">
-        {/* Header */}
-        <div className="mb-8">
-          <Button asChild variant="ghost" className="mb-4">
-            <Link href="/">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Quay lại
-            </Link>
-          </Button>
-          <h1 className="text-3xl font-bold mb-2">Thống kê truy cập</h1>
-          <p className="text-muted-foreground break-all">{shortUrl}</p>
-        </div>
+    <div className="max-w-2xl mx-auto p-6 space-y-4">
+      <h1 className="text-2xl font-semibold">Thống kê</h1>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Stats Summary */}
-          <div className="lg:col-span-3 grid gap-4 sm:grid-cols-3">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardDescription>Tổng lượt click</CardDescription>
-                <CardTitle className="text-3xl">{clicks.length}</CardTitle>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader className="pb-3">
-                <CardDescription>Click hôm nay</CardDescription>
-                <CardTitle className="text-3xl">
-                  {
-                    clicks.filter((c) => {
-                      const clickDate = new Date(c.timestamp).toDateString()
-                      const today = new Date().toDateString()
-                      return clickDate === today
-                    }).length
-                  }
-                </CardTitle>
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardHeader className="pb-3">
-                <CardDescription>Trạng thái</CardDescription>
-                <CardTitle className="text-3xl text-green-600">Hoạt động</CardTitle>
-              </CardHeader>
-            </Card>
+      <div className="flex gap-2 items-center">
+        <input
+          type="text"
+          placeholder="Dán short URL (https://localhost/r/4lxevp) hoặc slug (4lxevp)"
+          className="rounded border px-3 py-2 w-full"
+          defaultValue={qsUrl ?? ""}
+          onBlur={(e) => {
+            const v = e.target.value.trim();
+            const s = v.includes("://") ? extractSlug(v) : v;
+            setSlug(s || null);
+          }}
+        />
+        <button
+          className="px-4 py-2 rounded bg-black text-white disabled:opacity-50"
+          disabled={!slug || loading}
+          onClick={() => slug && setSlug(slug)} // trigger refetch
+        >
+          {loading ? "Đang tải…" : "Lấy thống kê"}
+        </button>
+      </div>
+
+      {err && (
+        <div className="rounded border p-3 bg-red-50 text-red-700">{err}</div>
+      )}
+      {loading && <p>Đang tải…</p>}
+
+      {data && !loading && !err && (
+        <div className="rounded border p-3 bg-white space-y-2">
+          <div className="text-sm text-gray-700">
+            Tổng lượt click: <b>{data.clicks_count}</b>
           </div>
-
-          {/* QR Code */}
-          <Card className="lg:col-span-1">
-            <CardHeader>
-              <CardTitle>Mã QR</CardTitle>
-              <CardDescription>Quét để truy cập link</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center gap-4">
-              {isLoading ? (
-                <div className="w-48 h-48 bg-muted animate-pulse rounded-lg" />
-              ) : (
-                <img src={qrCodeUrl || "/placeholder.svg"} alt="QR Code" className="w-48 h-48 border rounded-lg" />
-              )}
-              <Button variant="outline" className="w-full bg-transparent">
-                <Download className="h-4 w-4 mr-2" />
-                Tải xuống
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Clicks Table */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Lịch sử truy cập</CardTitle>
-              <CardDescription>Danh sách các lượt click gần đây</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-20 bg-muted animate-pulse rounded-lg" />
-                  ))}
-                </div>
-              ) : clicks.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">Chưa có lượt truy cập nào</div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Thời gian</th>
-                        <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">IP</th>
-                        <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Nguồn</th>
-                        <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Thiết bị</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {clicks.map((click) => (
-                        <tr key={click.id} className="border-b last:border-0">
-                          <td className="py-3 px-2 text-sm">{formatDate(click.timestamp)}</td>
-                          <td className="py-3 px-2 text-sm font-mono">{click.ip}</td>
-                          <td className="py-3 px-2 text-sm">
-                            {click.referrer === "Direct" ? (
-                              <span className="text-muted-foreground">Trực tiếp</span>
-                            ) : (
-                              <span className="text-blue-600">{truncateText(click.referrer, 20)}</span>
-                            )}
-                          </td>
-                          <td className="py-3 px-2 text-sm text-muted-foreground">
-                            {truncateText(click.userAgent, 30)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <div className="text-sm font-medium mt-2">Gần đây</div>
+          {data.recent?.length ? (
+            <ul className="list-disc pl-5 text-sm text-gray-700">
+              {data.recent.map((r: any, i: number) => (
+                <li key={i}>
+                  {r.created_at ?? r.ts ?? ""} {r.ip ? `— IP: ${r.ip}` : ""}{" "}
+                  {r.user_agent ?? r.ua ? `— UA: ${r.user_agent ?? r.ua}` : ""}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <em className="text-sm text-gray-500">Chưa có click nào.</em>
+          )}
         </div>
+      )}
+
+      {/* Nút quay lại trang chủ */}
+      <div className="pt-4">
+        <button
+          onClick={() => router.push("/")}
+          className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800"
+        >
+          ⬅️ Quay lại trang chủ
+        </button>
       </div>
     </div>
-  )
+  );
 }
