@@ -46,7 +46,6 @@ cd link-short
 ### 2️⃣ Tạo file .env cho backend
 ```bash
 Tạo file .env trong thư mục backend/ (hoặc sao chép .env.example):
-```env
 env
 Copy code
 APP_NAME="URL Shortener"
@@ -77,22 +76,24 @@ AWS_BUCKET=uploads
 AWS_ENDPOINT=http://minio:9000
 AWS_USE_PATH_STYLE_ENDPOINT=true
 ```
-```
 ### 3️⃣ Build & khởi động toàn bộ stack
 ```bash
 Copy code
 docker compose build
 docker compose up -d
 ```
-4️⃣ Sinh key cho Laravel
-bash
+### 4️⃣ Sinh key cho Laravel
+```bash
 Copy code
 docker compose exec laravel php artisan key:generate --force
-5️⃣ Chạy migration
-bash
+```
+### 5️⃣ Chạy migration
+```bash
 Copy code
 docker compose exec laravel php artisan migrate --force
-6️⃣ Truy cập ứng dụng
+```
+### 6️⃣ Truy cập ứng dụng
+```bash
 Thành phần	URL
 🌐 Frontend	https://localhost
 ⚙️ Backend API	https://localhost/api
@@ -145,9 +146,10 @@ docker compose exec laravel php artisan tinker	Chạy Tinker
 docker compose logs laravel	Xem log Laravel
 docker compose logs nginx --since 5m	Xem log nginx gần đây
 docker compose restart nginx laravel	Khởi động lại web service
+```
 
-📂 Cấu trúc thư mục
-bash
+### 📂 Cấu trúc thư mục
+```bash
 Copy code
 .
 ├── 📁 backend/               # 🧱 Laravel app (Backend)
@@ -170,3 +172,4 @@ Copy code
 │
 ├── ⚙️ docker-compose.yml
 └── 📘 README.md
+```
