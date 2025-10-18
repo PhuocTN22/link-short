@@ -42,7 +42,7 @@ Copy code
 ```bash
 git clone https://github.com/<your-username>/link-short.git
 cd link-short
-2️⃣ Tạo file .env cho backend
+### 2️⃣ Tạo file .env cho backend
 Tạo file .env trong thư mục backend/ (hoặc sao chép .env.example):
 
 env
