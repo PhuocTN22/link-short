@@ -169,6 +169,10 @@ Copy code
 ├── 🐳 docker/
 │   ├── 📄 laravel/Dockerfile
 │   └── 📄 nginx/Dockerfile
+|   └── 📄 frontend/Dockerfile
+|   └── 📁 cert
+|        └── 📄fullchain.pem
+|        └── 📄privatekey.pem
 │
 ├── ⚙️ docker-compose.yml
 └── 📘 README.md
