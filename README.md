@@ -21,7 +21,7 @@ Dự án gồm hai phần:
 ---
 
 ## 🧩 Kiến trúc hệ thống
-
+```bash
 Docker Compose
 ├── laravel (Backend API – Laravel 11)
 ├── nextjs (Frontend – Next.js 14)
@@ -29,7 +29,7 @@ Docker Compose
 ├── redis (Cache + queue)
 ├── minio (Giả lập AWS S3)
 └── nginx (Reverse proxy HTTPS cho frontend & backend)
-
+```
 yaml
 Copy code
 
