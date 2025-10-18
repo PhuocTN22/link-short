@@ -43,8 +43,8 @@ Copy code
 git clone https://github.com/<your-username>/link-short.git
 cd link-short
 ```
+### 2️⃣ Tạo file .env cho backend
 ```bash
-2️⃣ Tạo file .env cho backend
 Tạo file .env trong thư mục backend/ (hoặc sao chép .env.example):
 ```env
 env
@@ -78,11 +78,12 @@ AWS_ENDPOINT=http://minio:9000
 AWS_USE_PATH_STYLE_ENDPOINT=true
 ```
 ```
-3️⃣ Build & khởi động toàn bộ stack
-bash
+### 3️⃣ Build & khởi động toàn bộ stack
+```bash
 Copy code
 docker compose build
 docker compose up -d
+```
 4️⃣ Sinh key cho Laravel
 bash
 Copy code
