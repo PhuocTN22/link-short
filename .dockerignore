@@ -1,0 +1,16 @@
+# --- ignore frontend build artifacts ---
+frontend/node_modules
+frontend/.next
+frontend/out
+
+# --- ignore backend vendor/cache ---
+backend/vendor
+backend/storage/logs/*
+backend/storage/framework/cache/*
+backend/storage/framework/views/*
+
+# --- common ---
+.git
+.gitignore
+.DS_Store
+Thumbs.db
