@@ -42,9 +42,11 @@ Copy code
 ```bash
 git clone https://github.com/<your-username>/link-short.git
 cd link-short
+```
+```bash
 ### 2️⃣ Tạo file .env cho backend
 Tạo file .env trong thư mục backend/ (hoặc sao chép .env.example):
-
+```env
 env
 Copy code
 APP_NAME="URL Shortener"
@@ -74,6 +76,8 @@ AWS_DEFAULT_REGION=auto
 AWS_BUCKET=uploads
 AWS_ENDPOINT=http://minio:9000
 AWS_USE_PATH_STYLE_ENDPOINT=true
+```
+```
 3️⃣ Build & khởi động toàn bộ stack
 bash
 Copy code
