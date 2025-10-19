@@ -106,26 +106,33 @@ Thành phần	URL
 📁 Cấu trúc
 Toàn bộ mã giao diện nằm trong thư mục frontend/.
 
-Cách cài đặt và chạy (thủ công, không dùng Docker)
+Cách cài đặt và chạy
 bash
 Copy code
 # Di chuyển vào thư mục frontend
 cd frontend
 
+# Bật corepack (nếu chưa có)
+corepack enable
+corepack prepare pnpm@9 --activate
+
 # Cài dependencies
-npm install
+pnpm install
 
 # Sao chép file cấu hình mẫu
 cp .env.example .env
 
 # ⚙️ Chỉnh biến API nếu backend chạy port khác
-# VITE_API_BASE=https://localhost/api
+# NEXT_PUBLIC_API_BASE=https://localhost/api
 
 # Chạy môi trường dev (hot reload)
-npm run dev
+pnpm dev
 
-# Build production và chạy thử preview
-npm run build && npm run preview
+# Build production
+pnpm build
+
+# Chạy production server
+pnpm start
 Dev mode: http://localhost:3000
 
 Production (qua nginx): https://localhost
